@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<ul>
+    {% for task in tasks %}
+    <li> {{ task.title }}
+    <span> {{ task.status }}</span>
+    <span> {{ task.priority }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
