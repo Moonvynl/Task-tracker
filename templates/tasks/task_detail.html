@@ -1,10 +1,78 @@
 {% extends "base.html" %}
 {% block content %}
+{% load custom_tags %}
 
-    <h1> {{ task.title }}</h1>
-    <p> {{ task.status }}</p>
-    <p> {{ task.priority }}</p>
-    <p> {{ task.description }}</p>
-    <p> {{ task.due_date }}</p>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h1 class="text-white">{{ task.title }}</h1>
+                <p class="text-white">Status: {{ task.status }}</p>
+                <p class="text-white">Priority: {{ task.priority }}</p>
+                <p class="text-white">Description: {{ task.description }}</p>
+                <p class="text-white">Due Date: {{ task.due_date }}</p>
+                <p class="text-white">Creator: {{ task.creator }}</p>
+                
+                <a href="{% url 'tasks:task-delete' task.id %}" class="btn btn-danger">Delete</a>
+                <a href="{% url 'tasks:task-update' task.id %}" class="btn btn-primary">Update Task</a>
+                
+                <form method="post" action="{% url 'tasks:task-detail' task.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_content">Content:</label>
+                        {{ form.content }}
+                    </div>
+                    <div class="form-data">
+                        {{ form.media}}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+                <div class="mt-4">
+                    <h3 class="text-white">Comments:</h3>
+                    <ul class="list-group">
+                        {% for comment in task.comments.all %}
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <strong>{{ comment.creator }}</strong>
+                                    </div>
+                                    <div class="col-7">
+                                        {{ comment.content }}
+                                    </div>
+                                    {% if comment.media %}
+                                        {% if comment.media.url|endswith:".jpg" or comment.media.url|endswith:".png" or comment.media.url|endswith:".jpeg" %}
+                                            <div class="col-7">
+                                                <img src="{{ comment.media.url }}" class="img-thumbnail" alt="Помилка">
+                                            </div>
+                                        {% elif comment.media.url|endswith:".mp4" %}
+                                            <div class="col-7">
+                                                <video width="200" height="200" controls>
+                                                    <source src="{{ comment.media.url }}" type="video/mp4">
+                                                </video>
+                                            </div>
+                                        {% else %}
+                                            <div class="col-7">
+                                                <a href="{{ comment.media.url }}">Завантажити файл</a>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                    <div class="col-2">
+                                        <span class="float-right">{{ comment.created_at }}</span>
+                                    </div>
+                                    <form action="{% url 'tasks:comment-like-toggle' comment.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm {% if request.user in comment.likes.all %}btn-success{% else %}btn-outline-success{% endif %}">
+                                            Лайк {{ comment.likes.count }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                            {% empty %}
+                                <p>There's no comments</p>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
